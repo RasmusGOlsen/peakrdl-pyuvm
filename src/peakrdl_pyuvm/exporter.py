@@ -97,11 +97,6 @@ class PyUVMExporter:
             internal `AddrmapNode`.
         path: str
             Output file.
-        export_as_package: bool
-            If True (Default), UVM register model is exported as a SystemVerilog
-            package. Package name is based on the output file name.
-
-            If False, register model is exported as an includable header.
         reuse_class_definitions: bool
             If True (Default), exporter attempts to re-use class definitions
             where possible. Class names are based on the lexical scope of the
@@ -109,15 +104,7 @@ class PyUVMExporter:
 
             If False, class definitions are not reused. Class names are based on
             the instance's hierarchical path.
-        use_uvm_factory: bool
-            If True, class definitions and class instances are created using the
-            UVM factory.
-
-            If False (Default), UVM factory is disabled. Classes are created
-            directly via new() constructors.
         """
-        export_as_package = kwargs.pop("export_as_package", True)
-        use_uvm_factory = kwargs.pop("use_uvm_factory", False)
         self.reuse_class_definitions = kwargs.pop("reuse_class_definitions", True)
 
         # Check for stray kwargs
@@ -131,7 +118,7 @@ class PyUVMExporter:
 
         if isinstance(node, AddrmapNode) and node.get_property('bridge'):
             node.env.msg.warning(
-                "UVM RAL generator does not have proper support for bridge addmaps yet. The 'bridge' property will be ignored.",
+                "PyUVM RAL generator does not have proper support for bridge addmaps yet. The 'bridge' property will be ignored.",
                 node.inst.property_src_ref.get('bridge', node.inst.inst_src_ref)
             )
 
@@ -159,7 +146,6 @@ class PyUVMExporter:
             'get_mem_access': self._get_mem_access,
             'roundup_to': self._roundup_to,
             'roundup_pow2': self._roundup_pow2,
-            'use_uvm_factory': use_uvm_factory,
         }
 
         context.update(self.user_template_context)
@@ -173,12 +159,6 @@ class PyUVMExporter:
     def _get_package_name(self, path: str) -> str:
         s = os.path.splitext(os.path.basename(path))[0]
         s = re.sub(r'[^\w]', "_", s)
-        return s
-
-
-    def _get_include_guard(self, path: str) -> str:
-        s = os.path.basename(path)
-        s = re.sub(r'[^\w]', "_", s).upper()
         return s
 
 
