@@ -55,13 +55,13 @@ for i, reg in enumerate(self.{{get_inst_name(node)}}.flatten()):
     reg.configure(self)
     {{add_hdl_path_slices(node, get_inst_name(node))|trim}}
     reg.build()
-    self.default_map.add_reg(reg, {{"0x%x" % node.raw_address_offset}} + i * {{node.array_stride}})
+    self.default_map.add_reg(reg, {{"0x%x" % node.raw_address_offset}} + i * {{node.array_stride}}, "{{get_reg_access(node)}}")
 {%- else %}
 self.{{get_inst_name(node)}} = {{get_class_name(node)}}("{{get_inst_name(node)}}")
 self.{{get_inst_name(node)}}.configure(self, None, "")
 {{add_hdl_path_slices(node, get_inst_name(node))|trim}}
 self.{{get_inst_name(node)}}.build()
-self.default_map.add_reg(self.{{get_inst_name(node)}}, {{"0x%x" % node.raw_address_offset}})
+self.default_map.add_reg(self.{{get_inst_name(node)}}, {{"0x%x" % node.raw_address_offset}}, "{{get_reg_access(node)}}")
 {%- endif %}
 {%- endmacro %}
 

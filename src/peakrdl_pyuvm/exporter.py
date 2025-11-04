@@ -152,6 +152,7 @@ class PyUVMExporter:
             'get_class_friendly_name': self._get_class_friendly_name,
             'get_inst_name': self._get_inst_name,
             'get_field_access': self._get_field_access,
+            'get_reg_access': self._get_reg_access,
             'get_array_address_offset_expr': self._get_array_address_offset_expr,
             'get_endianness': self._get_endianness,
             'get_bus_width': self._get_bus_width,
@@ -261,6 +262,18 @@ class PyUVMExporter:
         self.namespace_db[type_name] = node.inst.original_def
         return True
 
+    def _get_reg_access(self, reg: RegNode) -> str:
+        """
+        Get reg's UVM access string
+        """
+        if reg.has_sw_readable and reg.has_sw_writable:
+            return "RW"
+        elif reg.has_sw_readable and not reg.has_sw_writable:
+            return "RO"
+        elif not reg.has_sw_readable and reg.has_sw_writable:
+            return "WO"
+        else:
+            return "RO"
 
     def _get_field_access(self, field: FieldNode) -> str:
         """
