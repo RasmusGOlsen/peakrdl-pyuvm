@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from peakrdl.config import schema  #pylint: disable=import-error
 from peakrdl.plugins.exporter import (
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class Exporter(ExporterSubcommandPlugin):
     short_desc = "Generate a pyuvm register model"
 
-    cfg_schema = {
+    cfg_schema: ClassVar[dict] = {
         "user_template_dir": schema.DirectoryPath(),
         "user_template_context": schema.UserMapping(schema.String()),
     }

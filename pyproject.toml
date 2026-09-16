@@ -16,7 +16,7 @@ maintainers = [
 ]
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
     "systemrdl-compiler",
     "jinja2",
@@ -26,8 +26,6 @@ dependencies = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -44,8 +42,26 @@ Source = "https://github.com/RasmusGOlsen/peakrdl-pyuvm"
 Tracker = "https://github.com/RasmusGOlsen/peakrdl-pyuvm/issues"
 Changelog = "https://github.com/RasmusGOlsen/peakrdl-pyuvm/releases"
 
+[project.optional-dependencies]
+cli = [
+    "peakrdl",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "peakrdl_pyuvm.__version__"}
 
 [project.entry-points."peakrdl.exporters"]
 pyuvm = "peakrdl_pyuvm.__peakrdl__:Exporter"
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]

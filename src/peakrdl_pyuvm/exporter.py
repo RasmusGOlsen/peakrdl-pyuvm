@@ -32,7 +32,7 @@ class PyUVMExporter:
     def __init__(
         self,
         user_template_dir: str = "",
-        user_template_context: dict[str, Any] = {}
+        user_template_context: dict[str, Any] | None = None
     ) -> None:
         """
         Constructor for the PyUVM Exporter class
@@ -44,6 +44,8 @@ class PyUVMExporter:
         user_template_context: dict
             Additional context variables to load into the template namespace.
         """
+        if user_template_context is None:
+            user_template_context = {}
         if user_template_dir:
             loader = ChoiceLoader([
                 FileSystemLoader(user_template_dir),
@@ -109,7 +111,7 @@ class PyUVMExporter:
 
         # Check for stray kwargs
         if kwargs:
-            raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
+            raise TypeError(f"got an unexpected keyword argument '{next(iter(kwargs))}'")
 
         # If it is the root node, skip to top addrmap
         if isinstance(node, RootNode):
@@ -118,7 +120,8 @@ class PyUVMExporter:
 
         if isinstance(node, AddrmapNode) and node.get_property('bridge'):
             node.env.msg.warning(
-                "PyUVM RAL generator does not have proper support for bridge addmaps yet. The 'bridge' property will be ignored.",
+                "PyUVM RAL generator does not have proper support for bridge addmaps yet. "
+                "The 'bridge' property will be ignored.",
                 node.inst.property_src_ref.get('bridge', node.inst.inst_src_ref)
             )
 
@@ -196,12 +199,10 @@ class PyUVMExporter:
         """
         if self.reuse_class_definitions:
             scope_path = node.get_global_type_name("::")
-
-            if scope_path is not None:
-                friendly_name = scope_path
-            else:
-                # Unable to determine a reusable type name. Fall back to hierarchical path
-                friendly_name = node.get_rel_path(self.top.parent)
+            friendly_name = (
+                scope_path if scope_path is not None
+                else node.get_rel_path(self.top.parent)
+            )
         else:
             friendly_name = node.get_rel_path(self.top.parent)
 
@@ -231,7 +232,9 @@ class PyUVMExporter:
 
             # Sanity-check for collisions
             if (obj is None) or (obj is not node.inst.original_def):
-                raise RuntimeError("Namespace collision! Type-name generation is not robust enough to create unique names!")
+                raise RuntimeError(
+                    "Namespace collision! Type-name generation is not robust enough to create unique names!"
+                )
 
             # This object likely represents the existing class definition
             # Ok to omit the re-definition
@@ -370,13 +373,13 @@ class PyUVMExporter:
         results in:
             X + i0*B*C*D*Y + i1*C*D*Y + i2*D*Y + i3*Y
         """
-        s = "'h%x" % node.raw_address_offset
+        s = f"'h{node.raw_address_offset:x}"
         if node.is_array:
             for i in range(len(node.array_dimensions)):
                 m = node.array_stride
                 for j in range(i+1, len(node.array_dimensions)):
                     m *= node.array_dimensions[j]
-                s += " + i%d*'h%x" % (i, m)
+                s += f" + i{i}'h{m:x}"
         return s
 
 

@@ -1,5 +1,6 @@
 from systemrdl import RDLListener
 
+
 class PreExportListener(RDLListener):
     def __init__(self, exporter):
         self.exporter = exporter

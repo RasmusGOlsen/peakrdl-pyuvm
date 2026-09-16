@@ -1,7 +1,8 @@
-import importlib.resources
 import importlib.util
+import os
 import sys
 import tempfile
+from importlib.resources import as_file, files
 
 import pytest
 from systemrdl import RDLCompileError, RDLCompiler
@@ -16,14 +17,14 @@ def model():
     rdlc = RDLCompiler()
 #    for udp in ALL_UDPS:
 #        rdlc.register_udp(udp)
-    rdlfiles = [importlib.resources.path(resources, "TinyALUreg.rdl")]
     try:
-        for rdlfile in rdlfiles:
+        with as_file(files(resources).joinpath("TinyALUreg.rdl")) as rdlfile:
             rdlc.compile_file(rdlfile)
         root = rdlc.elaborate()
-    except RDLCompileError:
-        raise SystemError
-    filepath = tempfile.NamedTemporaryFile(delete=False, suffix=".py").name
+    except RDLCompileError as err:
+        raise SystemError from err
+    fd, filepath = tempfile.mkstemp(suffix=".py")
+    os.close(fd)
     exporter = PyUVMExporter()
     exporter.export(root, filepath)
     module_name = "generated_model"
