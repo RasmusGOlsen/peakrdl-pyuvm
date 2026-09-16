@@ -46,9 +46,10 @@ def __init__(self, name: str = "{{get_class_name(node)}}") -> None:
 #------------------------------------------------------------------------------
 {% macro function_build(node) -%}
 def build(self):
-    self.default_map = self.create_map("reg_map", 0, {{(roundup_to(node.get_property('memwidth'), 8) / 8)|int}}, {{get_endianness(node)}})
+    reg_map = self.create_map("reg_map", 0, {{(roundup_to(node.get_property('memwidth'), 8) / 8)|int}}, {{get_endianness(node)}})
+    self.set_default_map(reg_map)
     self._mem.configure(self)
-    self.default_map.add_mem(self._mem, 0)
+    self.get_default_map().add_mem(self._mem, 0)
     {%- for child in node.children() if isinstance(child, RegNode) -%}
         {{uvm_vreg.build_instance(child)|indent}}
     {%- endfor %}
@@ -64,12 +65,12 @@ foreach(this.{{get_inst_name(node)}}[{{utils.array_iterator_list(node)}}]) begin
     self.{{get_inst_name(node)}}{{utils.array_iterator_suffix(node)}} = {{get_class_name(node)}}($sformatf("{{get_inst_name(node)}}{{utils.array_suffix_format(node)}}", {{utils.array_iterator_list(node)}}))
     self.{{get_inst_name(node)}}{{utils.array_iterator_suffix(node)}}.configure(self)
     self.{{get_inst_name(node)}}{{utils.array_iterator_suffix(node)}}.build()
-    self.default_map.add_submap(self.{{get_inst_name(node)}}{{utils.array_iterator_suffix(node)}}.default_map, {{get_array_address_offset_expr(node)}})
+    self.get_default_map().add_submap(self.{{get_inst_name(node)}}{{utils.array_iterator_suffix(node)}}.get_default_map(), {{get_array_address_offset_expr(node)}})
 end
 {%- else %}
 self.{{get_inst_name(node)}} = {{get_class_name(node)}}("{{get_inst_name(node)}}")
 self.{{get_inst_name(node)}}.configure(self)
 self.{{get_inst_name(node)}}.build()
-self.default_map.add_submap(self.{{get_inst_name(node)}}.default_map, {{"0x%x" % node.raw_address_offset}})
+self.get_default_map().add_submap(self.{{get_inst_name(node)}}.get_default_map(), {{"0x%x" % node.raw_address_offset}})
 {%- endif %}
 {%- endmacro %}

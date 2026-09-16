@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from peakrdl.plugins.exporter import ExporterSubcommandPlugin #pylint: disable=import-error
-from peakrdl.config import schema #pylint: disable=import-error
+from peakrdl.config import schema  #pylint: disable=import-error
+from peakrdl.plugins.exporter import (
+    ExporterSubcommandPlugin,  #pylint: disable=import-error
+)
 
 from .exporter import PyUVMExporter
 
 if TYPE_CHECKING:
     import argparse
+
     from systemrdl.node import AddrmapNode
 
 
@@ -51,7 +54,7 @@ class Exporter(ExporterSubcommandPlugin):
         )
 
 
-    def do_export(self, top_node: 'AddrmapNode', options: argparse.Namespace) -> None:
+    def do_export(self, top_node: AddrmapNode, options: argparse.Namespace) -> None:
         x = PyUVMExporter(
             user_template_dir=self.cfg['user_template_dir'],
             user_template_context=self.cfg['user_template_context']

@@ -32,7 +32,7 @@ class PyUVMExporter:
     def __init__(
         self,
         user_template_dir: str = "",
-        user_template_context: dict[str, Any] = dict()
+        user_template_context: dict[str, Any] = {}
     ) -> None:
         """
         Constructor for the PyUVM Exporter class
@@ -243,15 +243,38 @@ class PyUVMExporter:
         return True
 
     def _get_reg_access(self, reg: RegNode) -> str:
+        """Return the register's access rights for ``uvm_reg_map.add_reg()``.
+
+        These rights describe the access capability the bus interface grants to
+        the register (the "restriction layer" that ``uvm_reg_field.get_access()``
+        folds on top of the field's own access). They are deliberately *not* a
+        re-encoding of the field-level software access, which lives in
+        ``_get_field_access()`` and is the source of truth for SW semantics.
+
+        Policy:
+            - Any register with at least one writable field is added with "RW".
+              This avoids the destructive combination of a "WO" field inside a
+              "WO" register, which UVM's composite access table resolves to
+              "NOACCESS" and silently disables the write mirror
+              (``uvm_reg_field.set()``/``get()`` becomes a no-op). Add with "RW"
+              so write-only fields keep mirroring the desired value.
+            - Read-only registers stay "RO", preserving strict register-level
+              write checks (the "RO" field + "RO" rights combination resolves to
+              "RO" and is not demoted).
+
+        Note: with "RW" rights, RAL read access is no longer blocked at the
+              register level for write-only registers; the field-level "WO"
+              access still prevents mirror prediction on reads. This matches
+              the convention used by mainstream RAL generators.
+
+        Args:
+            reg: RDL register node to derive the access rights for.
+
+        Returns:
+            "RW" for any writable register, "RO" otherwise.
         """
-        Get reg's UVM access string
-        """
-        if reg.has_sw_readable and reg.has_sw_writable:
+        if reg.has_sw_writable:
             return "RW"
-        elif reg.has_sw_readable and not reg.has_sw_writable:
-            return "RO"
-        elif not reg.has_sw_readable and reg.has_sw_writable:
-            return "WO"
         else:
             return "RO"
 
